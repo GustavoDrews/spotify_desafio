@@ -1,13 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Pré-processamento do CSV do Kaggle → TSV seguro.
-
-- Lê o CSV original (com aspas, vírgulas e quebras de linha internas).
-- Extrai apenas 'artist' e 'text'.
-- Gera 'data/songs.tsv' com cada música em uma linha no formato: artist \t text
-  * substituímos qualquer TAB no texto por espaço, para não quebrar o TSV.
-"""
-
 import csv
 from pathlib import Path
 

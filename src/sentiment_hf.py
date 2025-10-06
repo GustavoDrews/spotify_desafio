@@ -1,11 +1,8 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Classificação de sentimento (Positiva/Neutra/Negativa) usando Hugging Face Transformers no WSL.
 Lê data/songs.tsv (artist \t text) e salva as contagens em out/sentiment_counts.csv.
 
 Uso (CPU):
-  source .venv/bin/activate   # se estiver usando venv
   python3 src/sentiment_hf.py --max 2000 --out out/sentiment_counts.csv
 
 Parâmetros úteis:
@@ -26,10 +23,6 @@ import re
 # Caminho do arquivo com as músicas (pré-processado pelo preprocess_csv.py)
 DATA = Path("data/songs.tsv")
 
-# ---------------------------------------------------------------
-# Funções auxiliares
-# ---------------------------------------------------------------
-
 def detect_device(arg_device: str | None) -> str:
     """Se usuário passou --device, respeita; caso contrário, usa cuda se disponível."""
     if arg_device:
@@ -38,11 +31,6 @@ def detect_device(arg_device: str | None) -> str:
 
 
 def load_pipeline(model_name: str, device: str, batch_size: int):
-    """
-    Cria pipeline de análise de sentimento do HF:
-    - use_fast=False: evita dependências extras (ex.: tiktoken) em alguns tokenizers.
-    - truncation+max_length=512: limita tamanho p/ estabilidade em CPU/GPU.
-    """
     tok = AutoTokenizer.from_pretrained(model_name, use_fast=False)
     mdl = AutoModelForSequenceClassification.from_pretrained(model_name)
     pipe = pipeline(
@@ -58,11 +46,6 @@ def load_pipeline(model_name: str, device: str, batch_size: int):
 
 
 def _pick_label(pred):
-    """
-    Extrai a 'label' principal independente do formato:
-      - dict {'label': 'POSITIVE', 'score': ...}
-      - list [{'label': 'NEGATIVE','score':...}, ...] → pega a de maior score
-    """
     if isinstance(pred, dict) and 'label' in pred:
         return pred['label']
     if isinstance(pred, list) and pred and isinstance(pred[0], dict):
@@ -72,11 +55,6 @@ def _pick_label(pred):
 
 
 def _normalize_label_to_pt(label_raw: str) -> str:
-    """
-    Normaliza rótulos de diferentes modelos para {Positiva, Neutra, Negativa}.
-    Suporta também modelos de 5 estrelas (nlptown), mapeando:
-      <=2 → Negativa, 3 → Neutra, >=4 → Positiva.
-    """
     s = str(label_raw).strip().lower()
 
     base_map = {
@@ -119,11 +97,6 @@ def batch_iter(lines, batch):
     if buf:
         yield buf
 
-
-# ---------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default="lxyuan/distilbert-base-multilingual-cased-sentiments-student")
@@ -145,7 +118,6 @@ def main():
     processed = 0
     seen = 0
 
-    # Gerador que lê 'data/songs.tsv' e rende somente o campo 'text'
     def read_texts():
         nonlocal seen, processed
         with DATA.open("r", encoding="utf-8") as fin:
@@ -172,7 +144,6 @@ def main():
             counts[label] += 1
             processed += 1
 
-    # Persistimos as contagens finais para integração com BI/relatório
     with outp.open("w", encoding="utf-8") as fo:
         fo.write("class;count\n")
         for k in ("Positiva","Neutra","Negativa"):

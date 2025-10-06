@@ -6,11 +6,6 @@
 #include <stdio.h>
 #include <ctype.h>
 
-/*
- * Estruturas básicas da nossa hash table de contagem:
- * - HashNode: nó encadeado (chave string + contador + próximo)
- * - HashMap: vetor de buckets com encadeamento por colisão
- */
 typedef struct HashNode {
     char *key;           // chave (string alocada dinamicamente)
     long count;          // contador acumulado
@@ -23,10 +18,6 @@ typedef struct {
     size_t nitems;       // quantidade total de itens (nós)
 } HashMap;
 
-/*
- * Função hash djb2: simples, boa distribuição para strings curtas.
- * Mantemos unsigned long e mod nbuckets ao indexar.
- */
 static unsigned long hash_str(const char *s) {
     unsigned long h = 5381;
     int c;
@@ -59,14 +50,6 @@ static void h_free(HashMap *m) {
     free(m);
 }
 
-/*
- * h_add: soma 'delta' à chave.
- * - Se a chave existir no bucket, apenas incrementa.
- * - Se não existir, cria novo nó no início da lista.
- * Observações:
- * - Evitamos inserir chaves vazias.
- * - Duplicamos a string 'key' manualmente (sem depender de strdup POSIX).
- */
 static void h_add(HashMap *m, const char *key, long delta) {
     if (!key || !*key) return;
     unsigned long h = hash_str(key) % m->nbuckets;
@@ -90,10 +73,6 @@ static void h_add(HashMap *m, const char *key, long delta) {
     m->nitems++;
 }
 
-/*
- * Iterador genérico: percorre todos os buckets e nós chamando 'fn'.
- * Útil para serialização e merge final no rank 0 (MPI).
- */
 typedef void (*h_iter_fn)(const char *key, long count, void *ud);
 
 static void h_foreach(HashMap *m, h_iter_fn fn, void *ud) {

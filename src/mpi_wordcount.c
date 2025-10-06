@@ -13,16 +13,6 @@ static void to_lower_ascii(char *s) {
     for (; *s; ++s) *s = (char)tolower((unsigned char)*s);
 }
 
-/*
- * count_words:
- *  - Copia o texto para um buffer temporário e põe tudo em minúsculas
- *  - Percorre caractere a caractere, agrupando [a-z0-9'] em tokens
- *  - Ao fechar um token, incrementa no HashMap
- *
- * Mudança da versão anterior:
- * - Agora o apóstrofo (') faz parte da palavra → preserva contrações (“don’t”)
- * - Stopwords foram removidas (conta tudo, inclusive “the”, “and”, “to”, etc.)
- */
 static void count_words(HashMap *map, const char *text) {
     size_t n = strlen(text);
     char *tmp = (char*)malloc(n+1);
